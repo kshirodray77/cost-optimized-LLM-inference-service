@@ -80,6 +80,11 @@ void Cache::put(const ChatRequest& req, const ChatResponse& resp) {
     if (req.stream) return;  // Don't cache streaming responses
 
     std::lock_guard<std::mutex> lock(mu_);
+
+    // Re-read config in case it changed (e.g. in tests)
+    max_size_    = Config::instance().get().cache.max_entries;
+    ttl_seconds_ = Config::instance().get().cache.ttl_seconds;
+
     std::string key = make_key(req);
 
     // If already exists, update it
