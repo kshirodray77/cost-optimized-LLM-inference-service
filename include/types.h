@@ -62,8 +62,7 @@ struct ChatResponse {
     double latency_ms        = 0;
     double cost_usd          = 0;
     bool   from_cache        = false;
-
-    json to_openai_json() const;     // OpenAI-compatible format
+    json   raw_response;             // Full provider response
 };
 
 // ── Streaming ───────────────────────────────────────────────────────

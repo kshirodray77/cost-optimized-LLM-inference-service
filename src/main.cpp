@@ -82,12 +82,8 @@ int main(int argc, char* argv[]) {
     crow::SimpleApp app;
     g_app = &app;
 
-    // CORS middleware
-    if (cfg.server.enable_cors) {
-        auto& cors = app.get_middleware<crow::CORSHandler>();
-        // Note: if Crow version doesn't have built-in CORS,
-        // we handle it manually in a catchall
-    }
+    // CORS: handled via response headers in each endpoint
+    // Crow::SimpleApp does not support middleware; use App<CORSHandler> if needed later
 
     // Register all API routes
     gateway::api::register_chat_completions(app);
