@@ -1,0 +1,33 @@
+# Build
+build/
+cmake-build-*/
+*.o
+*.a
+*.so
+*.dylib
+llm_gateway
+gateway_tests
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.cache/
+compile_commands.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies (fetched by CMake)
+_deps/
+
+# Secrets
+.env
+*.pem
+*.key
+
+# Docker
+.docker/

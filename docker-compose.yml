@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  gateway:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - LLM_GATEWAY_PORT=8080
+      - LLM_GATEWAY_LOG_LEVEL=info
+      - LLM_GATEWAY_ADMIN_KEY=${ADMIN_KEY:-admin-secret}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - TOGETHER_API_KEY=${TOGETHER_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+    volumes:
+      - ./config:/app/config:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

@@ -1,0 +1,85 @@
+{
+    "server": {
+        "host": "0.0.0.0",
+        "port": 8080,
+        "threads": 4,
+        "log_level": "info",
+        "admin_key": "your-admin-key-here",
+        "enable_cors": true
+    },
+
+    "cache": {
+        "enabled": true,
+        "ttl_seconds": 3600,
+        "max_entries": 10000,
+        "match_params": true
+    },
+
+    "rate_limit": {
+        "default_rpm": 60,
+        "default_tpm": 100000
+    },
+
+    "routing_strategy": "smart",
+
+    "providers": [
+        {
+            "name": "openai",
+            "api_key": "",
+            "base_url": "https://api.openai.com",
+            "timeout_ms": 30000,
+            "max_retries": 2,
+            "weight": 5,
+            "enabled": true,
+            "models": ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "o1", "o1-mini", "o3-mini"]
+        },
+        {
+            "name": "anthropic",
+            "api_key": "",
+            "base_url": "https://api.anthropic.com",
+            "timeout_ms": 30000,
+            "max_retries": 2,
+            "weight": 5,
+            "enabled": true,
+            "models": ["claude-sonnet-4-20250514", "claude-haiku-3-5", "claude-opus-4"]
+        },
+        {
+            "name": "together",
+            "api_key": "",
+            "base_url": "https://api.together.xyz",
+            "timeout_ms": 30000,
+            "max_retries": 2,
+            "weight": 3,
+            "enabled": true,
+            "models": [
+                "meta-llama/Llama-3.1-8B-Instruct",
+                "meta-llama/Llama-3.1-70B-Instruct",
+                "mistralai/Mixtral-8x7B-Instruct-v0.1"
+            ]
+        },
+        {
+            "name": "groq",
+            "api_key": "",
+            "base_url": "https://api.groq.com",
+            "timeout_ms": 15000,
+            "max_retries": 2,
+            "weight": 4,
+            "enabled": true,
+            "models": [
+                "llama-3.1-8b-instant",
+                "llama-3.1-70b-versatile",
+                "mixtral-8x7b-32768"
+            ]
+        }
+    ],
+
+    "model_aliases": {
+        "gpt-4o": "openai:gpt-4o",
+        "claude": "anthropic:claude-sonnet-4-20250514",
+        "llama-70b": "together:meta-llama/Llama-3.1-70B-Instruct",
+        "fast": "groq:llama-3.1-8b-instant",
+        "cheap": "together:meta-llama/Llama-3.1-8B-Instruct",
+        "smart": "anthropic:claude-sonnet-4-20250514",
+        "balanced": "openai:gpt-4o-mini"
+    }
+}
