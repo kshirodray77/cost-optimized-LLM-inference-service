@@ -57,7 +57,7 @@ void CostTracker::record(const RequestMetrics& metrics) {
     history_.push_back(m);
 
     spdlog::debug("Cost recorded: {} {} {}tok -> ${:.6f}",
-                  m.provider, m.model, m.total_tokens(), m.cost_usd);
+                  m.provider, m.model, m.prompt_tokens + m.completion_tokens, m.cost_usd);
 }
 
 bool CostTracker::check_budget(const std::string& api_key) const {
