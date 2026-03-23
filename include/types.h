@@ -132,6 +132,7 @@ struct VirtualKey {
     bool   active          = true;
     std::vector<std::string> allowed_models;
     TimePoint created_at   = Clock::now();
+    TimePoint expires_at;              // Default-constructed = no expiry
 };
 
 // ── Pricing ─────────────────────────────────────────────────────────
