@@ -156,13 +156,6 @@ Raw benchmark output: [`bench/results/`](bench/results/).
 
 This is an **active learning project** — I'm using it to deepen my understanding of LLM serving economics and high-performance C++ networking. Issues and PRs welcome.
 
----
-
-## What I learned building this
-
-> A short, honest paragraph here is one of the highest-signal things on the whole page. Recruiters read it. Replace this with 3–5 sentences on the most surprising/hardest thing you ran into — for example: where you initially over-engineered, a benchmark result that contradicted your assumption, a debugging story, or a tradeoff you'd revisit. Specific > generic.
-
----
 
 ## License
 
