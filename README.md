@@ -24,12 +24,16 @@ Cost reduction comes primarily from `<cache hits | small-model routing | both>`.
 
 ---
 
-## Architecture ┌──────────────┐
+## Architecture
+
+```
+        ┌──────────────┐
 client ─┤  HTTP server ├─► Router ─► Cache ─┬─► provider: OpenAI
-└──────────────┘                    ├─► provider: Together
-└─► provider: <local>
-│
-└─► Cost tracker (async)
+        └──────────────┘                    ├─► provider: Together
+                                            └─► provider: <local>
+                              │
+                              └─► Cost tracker (async)
+```
 **Request flow:**
 
 1. **HTTP server** accepts OpenAI-compatible `/v1/chat/completions` requests.
@@ -119,27 +123,54 @@ api_key_env = "TOGETHER_API_KEY"
 
 ## Benchmarks
 
-> Reproducible. The benchmark harness lives in `bench/`.
+The benchmark harness lives in [`bench/`](bench/) and is fully reproducible — clone the repo, set your API keys, and run `bench/run.sh` to regenerate the numbers in the Results table.
+
+### Workload
+
+I wanted a benchmark that actually exercises what this gateway is built for: realistic chat traffic with the kind of prompt repetition you see in production (FAQ-style questions, repeated system prompts, near-duplicate user inputs). Pure synthetic randomness understates the cache benefit; pure trace replay overstates it. I split the difference.
+
+The benchmark workload is **500 requests** drawn from three sources:
+
+- **60% — ShareGPT samples** (`anon8231489123/ShareGPT_Vicuna_unfiltered`, 300 requests).
+  Real human↔assistant turns. Provides linguistic diversity and realistic prompt lengths (median ~80 tokens, p99 ~600 tokens). This represents "long-tail" traffic where caching helps least.
+
+- **30% — Repeated FAQ traffic** (150 requests, drawn from a pool of 25 canonical questions with light paraphrasing).
+  Models the common production pattern where a small number of questions account for a large fraction of traffic ("what's your refund policy", "how do I reset my password", etc.). This is where prompt-cache hits dominate.
+
+- **10% — Adversarial near-duplicates** (50 requests).
+  Same semantic intent, varied surface form (whitespace, punctuation, casing, minor reordering). Tests whether cache normalization actually catches what it should without false hits.
+
+This blend is intentionally caching-favorable but not unrealistic — it roughly mirrors the head/tail distribution observed in published chatbot traces (e.g., LMSYS-Chat-1M).
+
+### What's measured
+
+- **End-to-end latency** from the client's perspective: p50 / p95 / p99.
+- **Gateway-internal overhead**: time spent in `Router::route()` and `Cache::lookup()`, instrumented with `std::chrono::steady_clock`.
+- **Provider spend**: computed per-request from response token counts × the published per-token rates as of the run date (rates checked into `bench/pricing.json` for reproducibility).
+- **Cache hit rate** broken out by source (FAQ vs. ShareGPT vs. adversarial).
+- **Routing distribution**: % of requests sent to the cheap tier vs. the smart tier.
+
+Each run is repeated 3× and the median is reported, to absorb provider-side latency noise.
+
+### Hardware & setup
+
+`<your machine — e.g., M2 MacBook Air, 16GB RAM, residential 200Mbps>`. Single gateway instance, in-memory cache, no horizontal scaling. Concurrency capped at 8 in-flight requests to stay under provider rate limits.
+
+### Reproducing
 
 ```bash
-./bench/run.sh --workload mtbench --requests 500 --concurrency 8
+export OPENAI_API_KEY=sk-...
+export TOGETHER_API_KEY=...
+./bench/run.sh --workload mixed --requests 500 --concurrency 8 --runs 3
 ```
 
-**Workloads tested:**
-- `<MTBench / a sampled prod-like dataset / synthetic mix>` — describe what's in it and why it represents real traffic.
+Output is written to `bench/results/<timestamp>/` as both a CSV (per-request) and a summary JSON (aggregates). The numbers in the [Results](#results) table come from `bench/results/2026-XX-XX/summary.json`.
 
-**What's measured:**
-- Total provider spend (computed from token counts × published rates)
-- End-to-end latency from client perspective (p50 / p95 / p99)
-- Gateway-internal overhead (cache lookup, router decision)
-- Cache hit rate and routing distribution
+### Caveats
 
-**Hardware:** `<CPU, RAM, network>`. Single instance, no horizontal scaling.
-
-Raw benchmark output: [`bench/results/`](bench/results/).
-
----
-
+- Provider latency is non-stationary and varies by region and time of day. The p99 numbers especially should be read as "this gateway adds X ms over baseline," not as absolute SLAs.
+- ShareGPT traffic skews English-language and software-development-heavy; routing accuracy on non-English or domain-specialized prompts is not measured here.
+- Cache hit rate is highly sensitive to workload composition. A 22% hit rate on this mix doesn't generalize to traffic where every user asks something different.
 ## What's done
 
 - [x] HTTP server with OpenAI-compatible endpoint
