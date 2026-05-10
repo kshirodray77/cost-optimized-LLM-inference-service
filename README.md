@@ -154,7 +154,7 @@ Raw benchmark output: [`bench/results/`](bench/results/).
 - [ ] Prometheus `/metrics` endpoint
 - [ ] Docker image + docker-compose for the full stack
 
-This is an **active learning project** — I'm using it to deepen my understanding of LLM serving economics and high-performance C++ networking. Issues and PRs welcome.
+This is an **active project** — I'm using it to deepen LLM serving economics and high-performance C++ networking. Issues and PRs welcome.
 
 
 ## License
